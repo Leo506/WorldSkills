@@ -3,6 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
+struct Seed
+{
+    public Vector3Int pos;
+    public Tile tile;
+
+    public Seed(Vector3Int pos, Tile tile)
+    {
+        this.pos = pos;
+        this.tile = tile;
+    }
+}
+
 public class TilemapGenerator : MonoBehaviour
 {
 
@@ -20,75 +32,30 @@ public class TilemapGenerator : MonoBehaviour
         tilemap.size = new Vector3Int(10, 10, 0);
         Debug.Log("Tilemap bounds: " + tilemap.localBounds.min + " " + tilemap.localBounds.max);
 
-        used = new List<Vector3Int>();
+        List<Seed> seeds = new List<Seed>();
 
-        Vector3Int randomPos;
-        do
-            randomPos = new Vector3Int(Random.Range(-5, 6), Random.Range(-5, 6), 0);
-        while (used.Contains(randomPos) || !CheckBounds(randomPos));
-
-        // Спавн травы
-        for (int i = 0; i < 50; i++)
+        // Создание случайно расположенных семян
+        for (int i = 0; i < 4; i++)
         {
-            tilemap.SetTile(randomPos, stoneTiles[Random.Range(0, stoneTiles.Length)]);
-            used.Add(randomPos);
-
-            var neighbours = GetNeighbours(randomPos);
-            if (neighbours.Count == 0)
-                continue;
-            randomPos = neighbours[Random.Range(0, neighbours.Count)];
+            var pos = new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0);
+            seeds.Add(new Seed(pos, grassTiles[i]));
+            tilemap.SetTile(pos, grassTiles[i]);
         }
 
-        do
-            randomPos = new Vector3Int(Random.Range(-5, 6), Random.Range(-5, 6), 0);
-        while (used.Contains(randomPos) || !CheckBounds(randomPos));
-
-
-        // Спавн воды
-        for (int i = 0; i < 30; i++)
+        // Перемещение семян
+        for (int i = 0; i < 800; i++)
         {
-            tilemap.SetTile(randomPos, waterTiles[Random.Range(0, waterTiles.Length)]);
-            used.Add(randomPos);
-
-            var neighbours = GetNeighbours(randomPos);
-            if (neighbours.Count == 0)
-                continue;
-            randomPos = neighbours[Random.Range(0, neighbours.Count)];
-        }
-
-
-        do
-            randomPos = new Vector3Int(Random.Range(-5, 6), Random.Range(-5, 6), 0);
-        while (used.Contains(randomPos) || !CheckBounds(randomPos));
-
-
-        // Спавн ада
-        for (int i = 0; i < 10; i++)
-        {
-            tilemap.SetTile(randomPos, hellTiles[Random.Range(0, hellTiles.Length)]);
-            used.Add(randomPos);
-
-            var neighbours = GetNeighbours(randomPos);
-            if (neighbours.Count == 0)
-                continue;
-            randomPos = neighbours[Random.Range(0, neighbours.Count)];
-        }
-
-
-        for (int x = 0; x < 10; x++)
-        {
-            for (int y = 0; y < 10; y++)
+            for (int j = 0; j < 4; j++)
             {
-                var xPos = (int)(x - y / 2 + 0.5f * y) - 5;
-                var yPos = (int)y - 5;
-                var pos = new Vector3Int(xPos, yPos, 0);
-                if (!used.Contains(pos))
-                {
-                    tilemap.SetTile(pos, grassTiles[Random.Range(0, grassTiles.Length)]);
-                    used.Add(pos);
-                }
+                var neighbours = GetNeighbours(seeds[j].pos);
+                if (neighbours.Count != 0)
+                    seeds[j] = new Seed(neighbours[Random.Range(0, neighbours.Count)], seeds[j].tile);
+                else
+                    seeds[j] = new Seed(new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0), seeds[j].tile);
+                tilemap.SetTile(seeds[j].pos, seeds[j].tile);
             }
         }
+
     }
 
 
@@ -109,7 +76,7 @@ public class TilemapGenerator : MonoBehaviour
         List<Vector3Int> toRemove = new List<Vector3Int>();
         for (int i = 0; i < 6; i++)
         {
-            if (!CheckBounds(neighbours[i]) || used.Contains(neighbours[i]))
+            if (!CheckBounds(neighbours[i]))
                 toRemove.Add(neighbours[i]);
         }
 
