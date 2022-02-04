@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-struct Seed
+class Node
 {
-    public Vector3Int pos;
-    public Tile tile;
+    public Vector3Int tilePos;
+    public Node previousNode;
 
-    public Seed(Vector3Int pos, Tile tile)
+    public Node(Vector3Int pos, Node node)
     {
-        this.pos = pos;
-        this.tile = tile;
+        tilePos = pos;
+        previousNode = node;
     }
 }
 
@@ -25,36 +25,78 @@ public class TilemapGenerator : MonoBehaviour
     public Tile[] hellTiles;
 
     List<Vector3Int> used;
+    List<Node> nodes;
+    Node front;
+
+    BoundsInt bounds;
 
     private void Start()
     {
 
         tilemap.size = new Vector3Int(10, 10, 0);
-        Debug.Log("Tilemap bounds: " + tilemap.localBounds.min + " " + tilemap.localBounds.max);
+        bounds = tilemap.cellBounds;
+        Debug.Log("Tilemap bounds: " + tilemap.cellBounds.min + " " + tilemap.cellBounds.max);
 
-        List<Seed> seeds = new List<Seed>();
+        used = new List<Vector3Int>();
 
-        // Создание случайно расположенных семян
-        for (int i = 0; i < 4; i++)
+        for (int j = 0; j < 3; j++)
         {
-            var pos = new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0);
-            seeds.Add(new Seed(pos, grassTiles[i]));
-            tilemap.SetTile(pos, grassTiles[i]);
-        }
+            Vector3Int randomPos;
+            do
+                randomPos = new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0);
+            while (used.Contains(randomPos));
+            tilemap.SetTile(randomPos, grassTiles[j]);
+            used.Add(randomPos);
 
-        // Перемещение семян
-        for (int i = 0; i < 800; i++)
-        {
-            for (int j = 0; j < 4; j++)
+            front = new Node(randomPos, null);
+
+            for (int i = 0; i < 30; i++)
             {
-                var neighbours = GetNeighbours(seeds[j].pos);
+                var neighbours = GetNeighbours(randomPos);
                 if (neighbours.Count != 0)
-                    seeds[j] = new Seed(neighbours[Random.Range(0, neighbours.Count)], seeds[j].tile);
+                {
+                    randomPos = neighbours[Random.Range(0, neighbours.Count)];
+                    tilemap.SetTile(randomPos, grassTiles[j]);
+                    used.Add(randomPos);
+                    Node node = new Node(randomPos, front);
+                    front = node;
+                }
                 else
-                    seeds[j] = new Seed(new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0), seeds[j].tile);
-                tilemap.SetTile(seeds[j].pos, seeds[j].tile);
+                {
+                    List<Vector3Int> n = new List<Vector3Int>();
+                    do
+                    {
+                        if (front.previousNode == null)
+                            break;
+                        else
+                            front = front.previousNode;
+                        n = GetNeighbours(front.tilePos);
+
+                    } while (n.Count == 0);
+
+                    if (n.Count != 0)
+                    {
+                        randomPos = n[Random.Range(0, n.Count)];
+                        tilemap.SetTile(randomPos, grassTiles[j]);
+                        used.Add(randomPos);
+                        Node node = new Node(randomPos, front);
+                        front = node;
+                    }
+                }
             }
         }
+
+        for (int x = bounds.min.x; x < bounds.max.x; x++)
+        {
+            for (int y = bounds.min.y; y < bounds.max.y; y++)
+            {
+                Vector3Int pos = new Vector3Int(x, y, 0);
+                if (!used.Contains(pos))
+                    tilemap.SetTile(pos, waterTiles[0]);
+            }
+        }
+
+
 
     }
 
@@ -76,7 +118,7 @@ public class TilemapGenerator : MonoBehaviour
         List<Vector3Int> toRemove = new List<Vector3Int>();
         for (int i = 0; i < 6; i++)
         {
-            if (!CheckBounds(neighbours[i]))
+            if (!CheckBounds(neighbours[i]) || used.Contains(neighbours[i]))
                 toRemove.Add(neighbours[i]);
         }
 
@@ -94,13 +136,15 @@ public class TilemapGenerator : MonoBehaviour
 
     bool CheckBounds(Vector3Int pos)
     {
-        Vector3 min = tilemap.localBounds.min;
-        Vector3 max = tilemap.localBounds.max;
+        
 
-        if (pos.x >= min.x && pos.x <= max.x)
+        if (pos.x >= bounds.min.x && pos.x <= bounds.max.x)
         {
-            if (pos.y >= min.y && pos.y <= max.y)
+            if (pos.y >= bounds.min.y && pos.y <= bounds.max.y)
+            {
+                Debug.Log("pos: " + pos + "  minX < pos <  maxX" + (pos.x >= bounds.min.x && pos.x <= bounds.max.x));
                 return true;
+            }
         }
 
         return false;
