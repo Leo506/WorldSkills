@@ -38,7 +38,7 @@ public class TilemapGenerator : MonoBehaviour
         Debug.Log("Tilemap bounds: " + tilemap.cellBounds.min + " " + tilemap.cellBounds.max);
 
         used = new List<Vector3Int>();
-
+        
         for (int j = 0; j < 3; j++)
         {
             Vector3Int randomPos;
@@ -86,17 +86,15 @@ public class TilemapGenerator : MonoBehaviour
             }
         }
 
-        for (int x = bounds.min.x; x < bounds.max.x; x++)
+        for (int x = tilemap.cellBounds.xMin; x < tilemap.cellBounds.xMax; x++)
         {
-            for (int y = bounds.min.y; y < bounds.max.y; y++)
+            for (int y = tilemap.cellBounds.yMin; y < tilemap.cellBounds.yMax; y++)
             {
                 Vector3Int pos = new Vector3Int(x, y, 0);
                 if (!used.Contains(pos))
                     tilemap.SetTile(pos, waterTiles[0]);
             }
         }
-
-
 
     }
 
@@ -138,11 +136,11 @@ public class TilemapGenerator : MonoBehaviour
     {
         
 
-        if (pos.x >= bounds.min.x && pos.x <= bounds.max.x)
+        if (pos.x >= bounds.xMin && pos.x <= bounds.xMax)
         {
-            if (pos.y >= bounds.min.y && pos.y <= bounds.max.y)
+            if (pos.y >= bounds.yMin && pos.y <= bounds.yMax)
             {
-                Debug.Log("pos: " + pos + "  minX < pos <  maxX" + (pos.x >= bounds.min.x && pos.x <= bounds.max.x));
+                //Debug.Log("pos: " + pos + "  minX < pos <  maxX" + (pos.x >= bounds.min.x && pos.x <= bounds.max.x));
                 return true;
             }
         }
