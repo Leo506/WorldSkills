@@ -3,152 +3,81 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
-class Node
-{
-    public Vector3Int tilePos;
-    public Node previousNode;
-
-    public Node(Vector3Int pos, Node node)
-    {
-        tilePos = pos;
-        previousNode = node;
-    }
-}
 
 public class TilemapGenerator : MonoBehaviour
 {
 
     public Tilemap tilemap;
-    public Tile[] grassTiles;
-    public Tile[] waterTiles;
-    public Tile[] stoneTiles;
-    public Tile[] hellTiles;
+    public Tilemap obstacleTilemap;
+    public Tile[] tiles;
+    public Tile[] obstacleTiles;
 
-    List<Vector3Int> used;
-    List<Node> nodes;
-    Node front;
-
-    BoundsInt bounds;
+    Dictionary<int, List<Vector3Int>> map = new Dictionary<int, List<Vector3Int>>();
 
     private void Start()
     {
 
-        tilemap.size = new Vector3Int(10, 10, 0);
-        bounds = tilemap.cellBounds;
-        Debug.Log("Tilemap bounds: " + tilemap.cellBounds.min + " " + tilemap.cellBounds.max);
-
-        used = new List<Vector3Int>();
+        tilemap.size = new Vector3Int(20, 20, 0);
+        obstacleTilemap.size = tilemap.size;
+        var leaves = BSP.Program.GetLeaves(new Vector2(-5, -5), 10, 10);
         
-        for (int j = 0; j < 3; j++)
+
+        int i = 0;
+        Debug.Log(leaves.Count);
+        foreach (var item in leaves)
         {
-            Vector3Int randomPos;
+            int startX = (int)item.position.x;
+            int stopX = (int)item.position.x + item.width;
+
+            int startY = (int)item.position.y;
+            int stopY = (int)item.position.y + item.height;
+
+            for (int x = startX; x < stopX; x++)
+            {
+                for (int y = startY; y < stopY; y++)
+                {
+                    tilemap.SetTile(new Vector3Int(x, y, 0), tiles[i]);
+                    if (map.ContainsKey(i))
+                        map[i].Add(new Vector3Int(x, y, 0));
+                    else
+                        map.Add(i, new List<Vector3Int> { new Vector3Int(x, y, 0) });
+                }
+            }
+
+            i++;
+            if (i >= tiles.Length)
+                i = 0;
+        }
+
+        for (int j = 0; j < 4; j++)
+        {
+            foreach (var item in GetObstacles(j))
+            {
+                obstacleTilemap.SetTile(item, obstacleTiles[0]);
+            }
+        }
+    }
+
+
+    List<Vector3Int> GetObstacles(int type)
+    {
+        int count = (int)(0.25f * map[type].Count);
+        //var random = new System.Random(10);
+        List<Vector3Int> toReturn = new List<Vector3Int>();
+        for (int i = 0; i < count; i++)
+        {
+            Vector3Int pos;
             do
-                randomPos = new Vector3Int(Random.Range(-5, 5), Random.Range(-5, 5), 0);
-            while (used.Contains(randomPos));
-            tilemap.SetTile(randomPos, grassTiles[j]);
-            used.Add(randomPos);
-
-            front = new Node(randomPos, null);
-
-            for (int i = 0; i < 30; i++)
-            {
-                var neighbours = GetNeighbours(randomPos);
-                if (neighbours.Count != 0)
-                {
-                    randomPos = neighbours[Random.Range(0, neighbours.Count)];
-                    tilemap.SetTile(randomPos, grassTiles[j]);
-                    used.Add(randomPos);
-                    Node node = new Node(randomPos, front);
-                    front = node;
-                }
-                else
-                {
-                    List<Vector3Int> n = new List<Vector3Int>();
-                    do
-                    {
-                        if (front.previousNode == null)
-                            break;
-                        else
-                            front = front.previousNode;
-                        n = GetNeighbours(front.tilePos);
-
-                    } while (n.Count == 0);
-
-                    if (n.Count != 0)
-                    {
-                        randomPos = n[Random.Range(0, n.Count)];
-                        tilemap.SetTile(randomPos, grassTiles[j]);
-                        used.Add(randomPos);
-                        Node node = new Node(randomPos, front);
-                        front = node;
-                    }
-                }
-            }
+                pos = map[type][Random.Range(0, map[type].Count)];
+            while (toReturn.Contains(pos));
+            toReturn.Add(pos);
         }
 
-        for (int x = tilemap.cellBounds.xMin; x < tilemap.cellBounds.xMax; x++)
-        {
-            for (int y = tilemap.cellBounds.yMin; y < tilemap.cellBounds.yMax; y++)
-            {
-                Vector3Int pos = new Vector3Int(x, y, 0);
-                if (!used.Contains(pos))
-                    tilemap.SetTile(pos, waterTiles[0]);
-            }
-        }
-
+        return toReturn;
     }
 
 
-    List<Vector3Int> GetNeighbours(Vector3Int cell)
-    {
-        bool yEven = cell.y % 2 == 0;
-
-        List<Vector3Int> neighbours = new List<Vector3Int>();
-
-        neighbours.Add(cell + new Vector3Int(+1, +0, 0)); //горизонтальный правый;
-        neighbours.Add(cell + new Vector3Int(-1, +0, 0)); //горизонтальный левый
-        neighbours.Add(cell + new Vector3Int(+0, +1, 0)); //диагональный верхний (для чётного ряда - правый, для нечётного - левый)
-        neighbours.Add(cell + new Vector3Int(+0, -1, 0)); //диагональный нижний (для чётного ряда - правый, для нечётного - левый)
-
-        neighbours.Add(cell + (yEven ? new Vector3Int(-1, +1, 0) : new Vector3Int(+1, +1, 0)));
-        neighbours.Add(cell + (yEven ? new Vector3Int(-1, -1, 0) : new Vector3Int(+1, -1, 0)));
-
-        List<Vector3Int> toRemove = new List<Vector3Int>();
-        for (int i = 0; i < 6; i++)
-        {
-            if (!CheckBounds(neighbours[i]) || used.Contains(neighbours[i]))
-                toRemove.Add(neighbours[i]);
-        }
-
-        if (toRemove.Count != 0)
-        {
-            foreach (var item in toRemove)
-            {
-                neighbours.Remove(item);
-            }
-        }
-
-        return neighbours;
-    }
-
-
-    bool CheckBounds(Vector3Int pos)
-    {
-        
-
-        if (pos.x >= bounds.xMin && pos.x <= bounds.xMax)
-        {
-            if (pos.y >= bounds.yMin && pos.y <= bounds.yMax)
-            {
-                //Debug.Log("pos: " + pos + "  minX < pos <  maxX" + (pos.x >= bounds.min.x && pos.x <= bounds.max.x));
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-
+    
 
     private void Update()
     {

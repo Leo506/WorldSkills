@@ -360,17 +360,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   tilemap: {fileID: 266179262}
-  grassTiles:
+  tiles:
+  - {fileID: 11400000, guid: a0e6cfa97da98804ca7e7360cc972c7f, type: 2}
+  - {fileID: 11400000, guid: ea0235c94fe28254782ed6f439f9a3c2, type: 2}
   - {fileID: 11400000, guid: 4e97290ffc73bed4fb9ab0dbcab8d6c8, type: 2}
-  - {fileID: 11400000, guid: c83c23e89d47e4947a9d7db5ab8514ab, type: 2}
-  - {fileID: 11400000, guid: 21dd6495e3cbf5b4dada73c18b228e18, type: 2}
-  - {fileID: 11400000, guid: c2c96665f4ee8f04aab9268808c72b7c, type: 2}
-  waterTiles:
-  - {fileID: 11400000, guid: ec7df3557acf76a4aa9303434d69559d, type: 2}
-  stoneTiles:
-  - {fileID: 11400000, guid: 1720c13fdcecb24408ee2e820984659f, type: 2}
-  hellTiles:
-  - {fileID: 11400000, guid: 8d117fe543525c647aedd28c0c01c15b, type: 2}
+  - {fileID: 11400000, guid: 0c6d70dd8c439d846af359e20d877e7b, type: 2}
 --- !u!4 &492739196
 Transform:
   m_ObjectHideFlags: 0

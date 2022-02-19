@@ -2,55 +2,80 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Leaf
+/*public struct Vector2
 {
-    const int MIN_LEAF_SIZE = 2;
+    public int x;
+    public int y;
 
-    public int x, y, width, height;
-
-    public Leaf leftChild;
-    public Leaf rightChild;
-
-    public Leaf(int x, int y, int width, int height)
+    public Vector2(int x, int y)
     {
         this.x = x;
         this.y = y;
-        this.width = width;
-        this.height = height;
-
-        Debug.Log($"New leaf with pos: {this.x} {this.y} and width {this.width} and height {this.height}");
     }
 
-
-    public bool Split()
+    public override string ToString()
     {
-        if (rightChild != null || leftChild != null)
-            return false;
-
-        bool splitHorizontal = Random.Range(0, 2) == 1;
-        if (width > height && width / height >= 1.25f)
-            splitHorizontal = true;
-        else if (height > width && height / width >= 1.25f)
-            splitHorizontal = false;
-
-        int max = (splitHorizontal ? height : width) - MIN_LEAF_SIZE;
-        if (max <= MIN_LEAF_SIZE)
-            return false;
-
-        int splitPoint = Random.Range(MIN_LEAF_SIZE, max);
-
-        if (splitHorizontal)
-        {
-            leftChild = new Leaf(x, y, width, splitPoint);
-            rightChild = new Leaf(x, y + splitPoint, width, height - splitPoint);
-        }
-        else
-        {
-            leftChild = new Leaf(x, y, splitPoint, height);
-            rightChild = new Leaf(x + splitPoint, y, width - splitPoint, height);
-        }
-
-        return true;
+        return $"({x};{y})";
     }
+}*/
 
+
+namespace BSP
+{
+    class Leaf
+    {
+        const int MIN_LEAF_SIZE = 3;
+
+        public Vector2 position;
+        public int width;
+        public int height;
+
+        public Leaf leftChild;
+        public Leaf rightChild;
+
+        public Leaf(Vector2 pos, int width, int height)
+        {
+            this.position = pos;
+            this.width = width;
+            this.height = height;
+        }
+
+
+        public bool Split()
+        {
+            if (rightChild != null && leftChild != null)
+                return false;  // Уже разразали лист
+
+            // Определяем направление разрезания
+            bool splitHor = Random.Range(0, 2) == 1;
+            if (width > height && (float)width / height >= 1.25f)
+                splitHor = false;
+            else if (height > width && (float)height / width >= 1.25f)
+                splitHor = true;
+
+
+            int max = (splitHor ? height : width) - MIN_LEAF_SIZE;
+            if (max <= MIN_LEAF_SIZE)
+                return false;
+            int split = Random.Range(MIN_LEAF_SIZE, max);
+
+            if (splitHor)
+            {
+                leftChild = new Leaf(position, width, split);
+                rightChild = new Leaf(new Vector2(position.x, position.y + split), width, height - split);
+            }
+            else
+            {
+                leftChild = new Leaf(position, split, height);
+                rightChild = new Leaf(new Vector2(position.x + split, position.y), width - split, height);
+            }
+
+            return true;
+        }
+
+        public override string ToString()
+        {
+            return $"Position: {position}, width: {width}, height = {height}\n";
+        }
+    }
 }
