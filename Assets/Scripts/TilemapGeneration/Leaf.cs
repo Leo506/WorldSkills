@@ -22,9 +22,9 @@ using UnityEngine;
 
 namespace BSP
 {
-    class Leaf
+    public class Leaf
     {
-        const int MIN_LEAF_SIZE = 3;
+        const int MIN_LEAF_SIZE = 60;
 
         public Vector2 position;
         public int width;

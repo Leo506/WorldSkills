@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<map>
+  <Leaf X="-150" Y="41" width="114" height="109" type="0" />
+  <Leaf X="37" Y="-72" width="113" height="113" type="0" />
+  <Leaf X="-150" Y="-20" width="89" height="61" type="0" />
+  <Leaf X="31" Y="41" width="119" height="109" type="1" />
+  <Leaf X="37" Y="-150" width="113" height="78" type="1" />
+  <Leaf X="-150" Y="-80" width="89" height="60" type="1" />
+  <Leaf X="-36" Y="41" width="67" height="109" type="2" />
+  <Leaf X="-61" Y="-76" width="98" height="117" type="2" />
+  <Leaf X="-150" Y="-150" width="89" height="70" type="3" />
+  <Leaf X="-61" Y="-150" width="98" height="74" type="3" />
+  <seed>96</seed>
+</map>

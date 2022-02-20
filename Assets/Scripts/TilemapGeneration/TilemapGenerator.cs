@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using BSP;
 
 
 public class TilemapGenerator : MonoBehaviour
@@ -12,14 +13,15 @@ public class TilemapGenerator : MonoBehaviour
     public Tile[] tiles;
     public Tile[] obstacleTiles;
 
-    Dictionary<int, List<Vector3Int>> map = new Dictionary<int, List<Vector3Int>>();
+    public Dictionary<int, List<Leaf>> map = new Dictionary<int, List<Leaf>>();
+    public int seed;
 
     private void Start()
     {
 
-        tilemap.size = new Vector3Int(20, 20, 0);
+        tilemap.size = new Vector3Int(300, 300, 0);
         obstacleTilemap.size = tilemap.size;
-        var leaves = BSP.Program.GetLeaves(new Vector2(-5, -5), 10, 10);
+        var leaves = Program.GetLeaves(new Vector2(-150, -150), 300, 300);
         
 
         int i = 0;
@@ -37,18 +39,20 @@ public class TilemapGenerator : MonoBehaviour
                 for (int y = startY; y < stopY; y++)
                 {
                     tilemap.SetTile(new Vector3Int(x, y, 0), tiles[i]);
-                    if (map.ContainsKey(i))
-                        map[i].Add(new Vector3Int(x, y, 0));
-                    else
-                        map.Add(i, new List<Vector3Int> { new Vector3Int(x, y, 0) });
                 }
             }
+
+            if (map.ContainsKey(i))
+                map[i].Add(item);
+            else
+                map.Add(i, new List<Leaf> { item });
 
             i++;
             if (i >= tiles.Length)
                 i = 0;
         }
 
+        seed = Random.Range(0, 100);
         for (int j = 0; j < 4; j++)
         {
             foreach (var item in GetObstacles(j))
@@ -61,21 +65,66 @@ public class TilemapGenerator : MonoBehaviour
 
     List<Vector3Int> GetObstacles(int type)
     {
-        int count = (int)(0.25f * map[type].Count);
-        //var random = new System.Random(10);
+        var random = new System.Random(seed);  // Инициализация рандомайзера
         List<Vector3Int> toReturn = new List<Vector3Int>();
-        for (int i = 0; i < count; i++)
+
+        for (int l = 0; l < map[type].Count; l++)
         {
-            Vector3Int pos;
-            do
-                pos = map[type][Random.Range(0, map[type].Count)];
-            while (toReturn.Contains(pos));
-            toReturn.Add(pos);
+            Leaf leaf = map[type][l];
+            int count = (int)(0.25f * leaf.width * leaf.height);  // Кол-во препятствий
+            for (int i = 0; i < count; i++)
+            {
+                Vector3Int pos;
+                int x, y;
+                do
+                {
+                    x = random.Next((int)leaf.position.x, (int)leaf.position.x + leaf.width);
+                    y = random.Next((int)leaf.position.y, (int)leaf.position.y + leaf.height);
+                    pos = new Vector3Int(x, y, 0);
+                }
+                while (toReturn.Contains(pos));
+                toReturn.Add(pos);
+            }
         }
 
         return toReturn;
     }
 
+
+    public void LoadMap()
+    {
+        tilemap.ClearAllTiles();
+        obstacleTilemap.ClearAllTiles();
+        foreach (var item in map)
+        {
+            for (int i = 0; i < item.Value.Count; i++)
+            {
+                Leaf leaf = item.Value[i];
+
+                int startX = (int)leaf.position.x;
+                int stopX = (int)leaf.position.x + leaf.width;
+
+                int startY = (int)leaf.position.y;
+                int stopY = (int)leaf.position.y + leaf.height;
+
+                for (int x = startX; x < stopX; x++)
+                {
+                    for (int y = startY; y < stopY; y++)
+                    {
+                        tilemap.SetTile(new Vector3Int(x, y, 0), tiles[item.Key]);
+                    }
+                }
+            }
+        }
+
+        for (int j = 0; j < 4; j++)
+        {
+            foreach (var item in GetObstacles(j))
+            {
+                obstacleTilemap.SetTile(item, obstacleTiles[0]);
+            }
+        }
+    }
 
     
 
