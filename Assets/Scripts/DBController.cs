@@ -71,6 +71,8 @@ public class DBController
         {
             connection = new MySqlConnection(constr);
             connection.Open();
+
+            Debug.Log("Соединение открыто: " + connection.State);
         }
 
         return connection;
@@ -83,9 +85,14 @@ public class DBController
     /// <returns>True, если соединение открыто, и false, если нет</returns>
     public static bool CheckConnection()
     {
+        Debug.Log("Соединение != null" + connection != null);
         if (connection != null && connection.State == System.Data.ConnectionState.Open)
+        {
+            Debug.Log("Соединение существует");
             return true;
+        }
 
+        Debug.Log("Соединение не существует");
         return false;
     }
 
@@ -99,6 +106,7 @@ public class DBController
         if (!CheckConnection())
             return;
 
+        Debug.Log("Попытка регистрации пользователя. Connection " + connection.State);
         string sql = $"insert into playerinfo (Fullname, Login, UserPassword) values (\"{player.fullname}\", \"{player.login}\", {player.password});";
         MySqlCommand command = new MySqlCommand(sql, connection);
 

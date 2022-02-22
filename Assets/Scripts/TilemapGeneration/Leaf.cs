@@ -24,7 +24,7 @@ namespace BSP
 {
     public class Leaf
     {
-        const int MIN_LEAF_SIZE = 60;
+        const int MIN_LEAF_SIZE = 3;
 
         public Vector2 position;
         public int width;

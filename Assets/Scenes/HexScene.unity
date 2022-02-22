@@ -787,6 +787,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6edf3be3ec691c04694d8ac549520390, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  width: 10
+  height: 10
   tilemap: {fileID: 266179262}
   obstacleTilemap: {fileID: 575790616}
   tiles:

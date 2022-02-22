@@ -7,6 +7,9 @@ using BSP;
 
 public class TilemapGenerator : MonoBehaviour
 {
+    [Header("Размеры карты")]
+    public int width;
+    public int height;
 
     public Tilemap tilemap;
     public Tilemap obstacleTilemap;
@@ -19,9 +22,9 @@ public class TilemapGenerator : MonoBehaviour
     private void Start()
     {
 
-        tilemap.size = new Vector3Int(300, 300, 0);
+        tilemap.size = new Vector3Int(width, height, 0);
         obstacleTilemap.size = tilemap.size;
-        var leaves = Program.GetLeaves(new Vector2(-150, -150), 300, 300);
+        var leaves = Program.GetLeaves(new Vector2(-width / 2, -height / 2), width, height);
         
 
         int i = 0;
